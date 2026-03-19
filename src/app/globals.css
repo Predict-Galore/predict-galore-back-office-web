@@ -1,0 +1,43 @@
+@import '../styles/tokens.css';
+@import 'tailwindcss';
+
+/* ====================
+   CSS Variables
+   ==================== */
+:root {
+  --background: var(--color-background);
+  --foreground: var(--color-text-primary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* ====================
+   Base Styles
+   ==================== */
+
+/* ============================================
+ * SCROLL BEHAVIOR
+ * ============================================ */
+
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth;
+  scroll-padding-top: 2rem;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
