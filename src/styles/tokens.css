@@ -12,6 +12,8 @@
   --color-border: #E2E8F0;
 
   /* Typography */
+  --font-inter: 'Inter';
+  --font-ultra: 'Ultra';
   --font-primary: var(--font-inter);
   --font-secondary: var(--font-ultra);
 
@@ -27,4 +29,3 @@
   --space-lg: 16px;
   --space-xl: 24px;
 }
-

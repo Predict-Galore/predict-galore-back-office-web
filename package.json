@@ -16,6 +16,8 @@
     "@emotion/cache": "^11.11.0",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/ultra": "^5.2.7",
     "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^6.1.0",
     "@mui/material": "^6.1.0",
