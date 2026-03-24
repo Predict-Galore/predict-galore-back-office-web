@@ -9,7 +9,7 @@ const protectedPaths = [
   '/settings',
 ];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
   if (!isProtected) return NextResponse.next();
@@ -26,4 +26,3 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/dashboard/:path*', '/predictions/:path*', '/users/:path*', '/transactions/:path*', '/settings/:path*'],
 };
-
