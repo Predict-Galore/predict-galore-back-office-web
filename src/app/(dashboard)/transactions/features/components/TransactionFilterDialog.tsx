@@ -62,7 +62,6 @@ export const TransactionFilterDialog = memo(function TransactionFilterDialog({
   // Update local filters when dialog opens or filters change
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing local state with props when dialog opens
       setLocalFilters({
         status: filters.status,
         paymentMethod: filters.paymentMethod,

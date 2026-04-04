@@ -187,7 +187,6 @@ export const UsersTable = memo(function UsersTable({
   // Sync selectedIds with selectedUser (single-select)
   useEffect(() => {
     if (selectedUser) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing derived state from props
       setSelectedIds(new Set([selectedUser.id]));
     } else {
       setSelectedIds(new Set());

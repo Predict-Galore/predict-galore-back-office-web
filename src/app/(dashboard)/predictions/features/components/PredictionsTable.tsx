@@ -173,7 +173,6 @@ export const PredictionsTable = memo(function PredictionsTable({
   // Sync selectedIds with selectedPrediction (single-select)
   useEffect(() => {
     if (selectedPrediction) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing derived state from props
       setSelectedIds(new Set([selectedPrediction.id]));
     } else {
       setSelectedIds(new Set());
