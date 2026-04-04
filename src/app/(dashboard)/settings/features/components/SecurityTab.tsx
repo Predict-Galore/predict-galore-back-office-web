@@ -56,7 +56,6 @@ export const SecurityTab: React.FC<TabComponentProps> = ({ showNotification }) =
     if (profileData) {
       // Security config comes from profile data (though it may be null)
       const twoFactorEnabled = profileData.securityConfig?.twoFactorEnabled || false;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initializing state from API data
       setTwoFactorEnabled(twoFactorEnabled);
     } else {
       // Reset to false if no data is available

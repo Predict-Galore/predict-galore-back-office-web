@@ -176,7 +176,6 @@ export const MarketsTable = memo(function MarketsTable({
   // Sync selectedIds with selectedMarket (single-select)
   useEffect(() => {
     if (selectedMarket) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing derived state from props
       setSelectedIds(new Set([selectedMarket.id]));
     } else {
       setSelectedIds(new Set());

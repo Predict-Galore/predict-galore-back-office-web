@@ -111,7 +111,6 @@ export const NotificationsTab: React.FC<TabComponentProps> = ({ showNotification
         secEnablePush: notificationSettings.secEnablePush ?? false,
         secEnableEmail: notificationSettings.secEnableEmail ?? false,
       };
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initializing state from API data
       setSettings(normalizedSettings);
       setHasChanges(false);
     } else if (profileData && !profileData.notificationSettings) {
