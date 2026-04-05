@@ -84,6 +84,8 @@ function DashboardPageClient() {
       sx={{
         // maxWidth: 1536,
         width: '100%',
+        minWidth: 0,
+        overflowX: 'hidden',
         px: { xs: 2, sm: 3, md: 4 },
         py: 4,
       }}
@@ -111,14 +113,14 @@ function DashboardPageClient() {
               mt: 3,
             }}
           >
-            <Box>
+            <Box sx={{ minWidth: 0 }}>
               <Stack spacing={3}>
                 <UserEngagementChart timeRange={timeRange} />
                 <Traffic />
               </Stack>
             </Box>
 
-            <Box>
+            <Box sx={{ minWidth: 0 }}>
               <ActivityLog />
             </Box>
           </Box>

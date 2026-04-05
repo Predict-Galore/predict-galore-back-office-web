@@ -98,34 +98,23 @@ export const SelectedMarketProfile = memo(function SelectedMarketProfile({
       <Divider sx={{ borderColor: '#F0F0F0' }} />
 
       {/* Details Row Section */}
-      <Box 
-        sx={{ 
-          p: '24px', 
-          display: 'flex', 
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          gap: 0
-        }}
-      >
-        {infoFields.map((item, index) => (
-          <Box 
-            key={item.label} 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: 'row', 
-              alignItems: 'center',
-              flex: index === 4 ? 2 : 1,
-            }}
-          >
-            <Box sx={{ pr: 3, pl: index === 0 ? 0 : 3 }}>
+      <Box sx={{ p: '24px' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' },
+            gap: 2,
+          }}
+        >
+          {infoFields.map((item) => (
+            <Box key={item.label} sx={{ minWidth: 0 }}>
               <Typography
-                sx={{ 
-                  color: '#8E8E93', 
-                  display: 'block', 
-                  mb: 1, 
+                sx={{
+                  color: '#8E8E93',
+                  display: 'block',
+                  mb: 1,
                   fontSize: '14px',
-                  fontWeight: 400
+                  fontWeight: 400,
                 }}
               >
                 {item.label}
@@ -134,17 +123,8 @@ export const SelectedMarketProfile = memo(function SelectedMarketProfile({
                 {item.value}
               </Typography>
             </Box>
-            
-            {/* Vertical Divider between items */}
-            {index < infoFields.length - 1 && (
-              <Divider 
-                orientation="vertical" 
-                flexItem 
-                sx={{ height: '40px', alignSelf: 'center', borderColor: '#E0E0E0' }} 
-              />
-            )}
-          </Box>
-        ))}
+          ))}
+        </Box>
       </Box>
 
       {/* Description Section */}

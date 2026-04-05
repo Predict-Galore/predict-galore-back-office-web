@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   description:
     'Predict Galore helps you make smarter sports predictions using insights and analytics.',
   icons: {
-    icon: '/favicon.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
 };
 

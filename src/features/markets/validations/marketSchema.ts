@@ -6,6 +6,7 @@
 import { z } from 'zod';
 
 export const selectionSchema = z.object({
+  id: z.number().optional(),
   selectionKey: z.string().min(1, 'Selection key is required'),
   selectionLabel: z.string().min(1, 'Selection label is required'),
   sortOrder: z.number().min(0, 'Sort order must be positive').default(1000),

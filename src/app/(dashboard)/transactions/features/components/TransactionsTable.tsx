@@ -21,7 +21,6 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Pagination,
   Stack,
   InputAdornment,
   Avatar,
@@ -47,6 +46,7 @@ import { SelectedTransactionProfile } from './SelectedTransactionProfile';
 import { generateUserInitials } from '@/features/users/lib/transformers';
 import { useTableExport } from '@/shared/hooks/useTableExport';
 import dynamic from 'next/dynamic';
+import { PrevNextPagination } from '@/shared/components/PrevNextPagination';
 
 const TransactionFilterDialog = dynamic(
   () => import('./TransactionFilterDialog').then((mod) => mod.TransactionFilterDialog),
@@ -267,10 +267,6 @@ export const TransactionsTable = memo(function TransactionsTable({
     });
   }, []);
 
-  const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
-    onFilterChange({ page });
-  }, [onFilterChange]);
-
   const handleSelectOne = useCallback((transactionId: string | number, transaction: Transaction) => {
     const idStr = String(transactionId);
     // Single-select: if clicking the same item, deselect it; otherwise select the new one
@@ -333,15 +329,25 @@ export const TransactionsTable = memo(function TransactionsTable({
       {/* Selected Transaction Profile */}
       {selectedTransaction && <SelectedTransactionProfile transaction={selectedTransaction} />}
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: 'space-between' }} alignItems="center">
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ mb: 3, justifyContent: 'space-between' }}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+      >
         {/* Left side: Search and Filters */}
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           <TextField
             placeholder="Search here..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             size="small"
-            sx={{ minWidth: 250 }}
+            sx={{ minWidth: { xs: '100%', sm: 250 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -372,8 +378,17 @@ export const TransactionsTable = memo(function TransactionsTable({
         </Button>
       </Stack>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: '100%',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        <Table sx={{ minWidth: 900 }}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -421,15 +436,12 @@ export const TransactionsTable = memo(function TransactionsTable({
         </Table>
       </TableContainer>
 
-      {pagination && pagination.totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination
-            count={pagination.totalPages}
-            page={pagination.page}
-            onChange={handlePageChange}
-            color="primary"
-          />
-        </Box>
+      {pagination && (
+        <PrevNextPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => onFilterChange({ page })}
+        />
       )}
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>

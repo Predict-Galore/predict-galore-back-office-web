@@ -35,6 +35,12 @@ html {
   scroll-padding-top: 2rem;
 }
 
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -43,3 +49,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}

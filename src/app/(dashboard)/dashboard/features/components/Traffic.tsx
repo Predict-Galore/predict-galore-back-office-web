@@ -53,11 +53,17 @@ const Traffic = memo(function Traffic({
   const items = trafficItems?.items || [];
 
   return (
-    <Card>
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: designTokens.spacing.itemGap }}>
+    <Card sx={{ minWidth: 0, overflowX: 'hidden' }}>
+      <CardContent sx={{ minWidth: 0, overflowX: 'hidden' }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={2}
+          sx={{ mb: designTokens.spacing.itemGap }}
+        >
           <Typography variant="h6">Traffic Analytics</Typography>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
             <InputLabel>View</InputLabel>
             <Select
               value={dimension}
@@ -71,8 +77,19 @@ const Traffic = memo(function Traffic({
           </FormControl>
         </Stack>
 
-        <TableContainer component={Paper} variant="outlined">
-          <Table>
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          sx={{
+            width: '100%',
+            maxWidth: '100%',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+          }}
+        >
+          <Table size="small" sx={{ minWidth: 650, width: 'max-content' }}>
             <TableHead>
               <TableRow>
                 <TableCell>Date</TableCell>

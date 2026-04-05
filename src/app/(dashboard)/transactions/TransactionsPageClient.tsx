@@ -75,7 +75,12 @@ function TransactionsPageClient() {
   }, [refetch, queryClient]);
 
   const handleFilterChange = useCallback((newFilters: Partial<TransactionsFilter>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+      // Only reset page when changing non-page filters
+      page: newFilters.page ?? 1,
+    }));
   }, []);
 
   const handleTimeRangeChange = useCallback((range: TimeRange) => {

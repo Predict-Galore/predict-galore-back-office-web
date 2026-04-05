@@ -9,7 +9,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
@@ -17,11 +17,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         setMobileOpen={setMobileSidebarOpen}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <Header onMenuToggle={() => setMobileSidebarOpen(true)} />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6 min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );
 }
-

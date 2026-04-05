@@ -54,7 +54,7 @@ export default function EditMarketPage() {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
       {/* Back Button */}
       <Button 
         startIcon={<ArrowBackIcon />} 

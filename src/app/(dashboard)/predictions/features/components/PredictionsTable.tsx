@@ -19,7 +19,6 @@ import {
   TextField,
   Button,
   Chip,
-  Pagination,
   Stack,
   InputAdornment,
   Select,
@@ -27,11 +26,21 @@ import {
   InputLabel,
   MenuItem as SelectMenuItem,
   Checkbox,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Search as SearchIcon,
   Download as DownloadIcon,
+  MoreVert as MoreVertIcon,
+  Visibility as VisibilityIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import {
   TableErrorState,
@@ -43,6 +52,7 @@ import { PaginationMeta } from '@/shared/types/common.types';
 import { useDebounce } from '@/shared/hooks/useDebounce';
 import { SelectedPredictionProfile } from './SelectedPredictionProfile';
 import { useTableExport } from '@/shared/hooks/useTableExport';
+import { PrevNextPagination } from '@/shared/components/PrevNextPagination';
 
 interface PredictionsTableProps {
   predictions: Prediction[];
@@ -63,9 +73,7 @@ interface PredictionRowProps {
   prediction: Prediction;
   isSelected: boolean;
   onSelect: (predictionId: number, prediction: Prediction) => void;
-  onViewDetails: (predictionId: number) => void;
-  onEdit: (prediction: Prediction) => void;
-  onDelete: (prediction: Prediction) => void;
+  onMenuOpen: (event: React.MouseEvent<HTMLElement>, prediction: Prediction) => void;
   formatDate: (dateString: string) => string;
   getStatusColor: (status: string) => 'default' | 'primary' | 'success' | 'warning' | 'error';
 }
@@ -74,9 +82,7 @@ const PredictionRow = memo(function PredictionRow({
   prediction,
   isSelected,
   onSelect,
-  onViewDetails,
-  onEdit,
-  onDelete,
+  onMenuOpen,
   formatDate,
   getStatusColor,
 }: PredictionRowProps) {
@@ -111,39 +117,9 @@ const PredictionRow = memo(function PredictionRow({
         />
       </TableCell>
       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-        <Stack direction="row" spacing={1} justifyContent="flex-end">
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails(prediction.id);
-            }}
-          >
-            View Details
-          </Button>
-          <Button
-            size="small"
-            variant="text"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(prediction);
-            }}
-          >
-            Edit
-          </Button>
-          <Button
-            size="small"
-            color="error"
-            variant="text"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(prediction);
-            }}
-          >
-            Delete
-          </Button>
-        </Stack>
+        <IconButton size="small" onClick={(e) => onMenuOpen(e, prediction)}>
+          <MoreVertIcon />
+        </IconButton>
       </TableCell>
     </TableRow>
   );
@@ -166,6 +142,10 @@ export const PredictionsTable = memo(function PredictionsTable({
   const router = useRouter();
   const [search, setSearch] = useState(filters.search || '');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  // Menu state (actions dropdown)
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuPrediction, setMenuPrediction] = useState<Prediction | null>(null);
   
   // Debounce search input
   const debouncedSearch = useDebounce(search, 300);
@@ -202,14 +182,6 @@ export const PredictionsTable = memo(function PredictionsTable({
       setTimeout(() => onPredictionSelect?.(prediction), 0);
     }
   }, [selectedPrediction, onPredictionSelect]);
-
-  const handleViewDetails = useCallback((predictionId: number) => {
-    router.push(`/predictions/${predictionId}`);
-  }, [router]);
-
-  const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
-    onFilterChange({ page });
-  }, [onFilterChange]);
 
   const getStatusColor = useCallback((status: string): 'default' | 'primary' | 'success' | 'warning' | 'error' => {
     switch (status) {
@@ -262,20 +234,59 @@ export const PredictionsTable = memo(function PredictionsTable({
     });
   }, []);
 
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>, prediction: Prediction) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setMenuPrediction(prediction);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+    setMenuPrediction(null);
+  }, []);
+
+  const handleMenuViewDetails = useCallback(() => {
+    if (!menuPrediction) return;
+    router.push(`/predictions/${menuPrediction.id}`);
+    handleMenuClose();
+  }, [menuPrediction, router, handleMenuClose]);
+
+  const handleMenuEdit = useCallback(() => {
+    if (!menuPrediction) return;
+    onEditPrediction(menuPrediction);
+    handleMenuClose();
+  }, [menuPrediction, onEditPrediction, handleMenuClose]);
+
+  const handleMenuDelete = useCallback(() => {
+    if (!menuPrediction) return;
+    onDeletePrediction(menuPrediction);
+    handleMenuClose();
+  }, [menuPrediction, onDeletePrediction, handleMenuClose]);
+
   return (
     <Box>
       {/* Selected Prediction Profile */}
       {selectedPrediction && <SelectedPredictionProfile prediction={selectedPrediction} />}
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: 'space-between' }} alignItems="center">
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ mb: 3, justifyContent: 'space-between' }}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+      >
         {/* Left side: Search and Filters */}
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           <TextField
             placeholder="Search predictions..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             size="small"
-            sx={{ minWidth: 250 }}
+            sx={{ minWidth: { xs: '100%', sm: 250 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -309,7 +320,7 @@ export const PredictionsTable = memo(function PredictionsTable({
         </Stack>
 
         {/* Right side: Action buttons */}
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
@@ -324,8 +335,17 @@ export const PredictionsTable = memo(function PredictionsTable({
         </Stack>
       </Stack>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: '100%',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        <Table sx={{ minWidth: 900 }}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -362,9 +382,7 @@ export const PredictionsTable = memo(function PredictionsTable({
                   prediction={prediction}
                   isSelected={selectedIds.has(prediction.id)}
                   onSelect={handleSelectOne}
-                  onViewDetails={handleViewDetails}
-                  onEdit={onEditPrediction}
-                  onDelete={onDeletePrediction}
+                  onMenuOpen={handleMenuOpen}
                   formatDate={formatDate}
                   getStatusColor={getStatusColor}
                 />
@@ -374,16 +392,42 @@ export const PredictionsTable = memo(function PredictionsTable({
         </Table>
       </TableContainer>
 
-      {pagination && pagination.totalPages > 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Pagination
-            count={pagination.totalPages}
-            page={pagination.page}
-            onChange={handlePageChange}
-            color="primary"
-          />
-        </Box>
+      {pagination && (
+        <PrevNextPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => onFilterChange({ page })}
+        />
       )}
+
+      {/* Actions Menu */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem onClick={handleMenuViewDetails}>
+          <ListItemIcon>
+            <VisibilityIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>View Details</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleMenuEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={handleMenuDelete} sx={{ color: 'error.main' }}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 });

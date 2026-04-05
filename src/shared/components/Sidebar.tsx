@@ -184,6 +184,9 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: Sidebar
         sx={{
           flex: 1,
           overflowY: 'auto',
+          scrollbarWidth: 'none', // Firefox
+          msOverflowStyle: 'none', // IE/Edge
+          '&::-webkit-scrollbar': { display: 'none' }, // Chrome/Safari
           px: collapsed && !isMobile ? 0 : 1.5,
           py: 2,
         }}

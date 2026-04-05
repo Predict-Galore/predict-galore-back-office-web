@@ -357,11 +357,17 @@ function PredictionDetailPage() {
       </Breadcrumbs>
 
       {/* Header with Title and Actions */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        spacing={2}
+        sx={{ mb: 4 }}
+      >
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Prediction
         </Typography>
-        <Stack direction="row" spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
           {isEditing ? (
             <>
               <Button
