@@ -65,7 +65,14 @@ export const PredictionAnalysisStep: React.FC<PredictionAnalysisStepProps> = ({
 
   // Get all markets
   const { data: marketsData, isLoading: isMarketsLoading } = useMarkets();
-  const markets: Market[] = Array.isArray(marketsData) ? marketsData : [];
+  const markets: Market[] = Array.isArray(marketsData)
+    ? marketsData
+    : (marketsData &&
+        typeof marketsData === 'object' &&
+        'markets' in marketsData &&
+        Array.isArray((marketsData as { markets?: unknown }).markets))
+      ? ((marketsData as { markets: Market[] }).markets ?? [])
+      : [];
 
   // Collect unique market IDs from picks
   const marketIds = picks.reduce<number[]>((ids, pick) => {
