@@ -65,11 +65,11 @@ export const PredictionAnalysisStep: React.FC<PredictionAnalysisStepProps> = ({
 
   // Get all markets
   const { data: marketsData, isLoading: isMarketsLoading } = useMarkets();
-  const markets = marketsData || [];
+  const markets: Market[] = Array.isArray(marketsData) ? marketsData : [];
 
   // Collect unique market IDs from picks
   const marketIds = picks.reduce<number[]>((ids, pick) => {
-    const market = markets.find((m: Market) => m.name === pick.market);
+    const market = markets.find((m) => m.name === pick.market);
     if (market && !ids.includes(market.id)) {
       ids.push(market.id);
     }
@@ -112,7 +112,7 @@ export const PredictionAnalysisStep: React.FC<PredictionAnalysisStepProps> = ({
     if (marketIndex === -1) return [];
 
     const query = marketSelectionQueries[marketIndex];
-    if (!query.data) return [];
+    if (!query.data || !Array.isArray(query.data)) return [];
 
     // First pass: create selections with base labels
     const selections = query.data.map((item, index: number) => {
