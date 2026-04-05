@@ -18,7 +18,6 @@ import {
   TextField,
   Button,
   Chip,
-  Pagination,
   InputAdornment,
   Select,
   FormControl,
@@ -45,7 +44,6 @@ import {
   ToggleOff as ToggleOffIcon,
 } from '@mui/icons-material';
 import Stack from '@mui/material/Stack';
-import { designTokens } from '@/shared/styles/tokens';
 import {
   TableErrorState,
   TableEmptyState,
@@ -59,6 +57,7 @@ import { useTableExport } from '@/shared/hooks/useTableExport';
 import { DeleteConfirmationDialog } from '@/shared/components/DeleteConfirmationDialog';
 import { SuccessDialog } from '@/shared/components/SuccessDialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { PrevNextPagination } from '@/shared/components/PrevNextPagination';
 
 interface MarketsTableProps {
   markets: Market[];
@@ -205,10 +204,6 @@ export const MarketsTable = memo(function MarketsTable({
     }
   }, [selectedMarket, onMarketSelect]);
 
-  const handlePageChange = useCallback((_: React.ChangeEvent<unknown>, page: number) => {
-    onFilterChange({ page });
-  }, [onFilterChange]);
-
   const handleFilterChange = useCallback((key: keyof MarketsFilter, value: string | boolean | undefined) => {
     onFilterChange({ [key]: value || undefined, page: 1 } as Partial<MarketsFilter>);
   }, [onFilterChange]);
@@ -311,14 +306,24 @@ export const MarketsTable = memo(function MarketsTable({
       {/* Selected Market Profile */}
       {selectedMarket && <SelectedMarketProfile market={selectedMarket} />}
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3, justifyContent: 'space-between' }} alignItems="center">
-        <Stack direction="row" spacing={2} alignItems="center">
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ mb: 3, justifyContent: 'space-between' }}
+        alignItems={{ xs: 'stretch', md: 'center' }}
+      >
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ width: { xs: '100%', md: 'auto' } }}
+        >
           <TextField
             placeholder="Search markets..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             size="small"
-            sx={{ minWidth: 250 }}
+            sx={{ minWidth: { xs: '100%', sm: 250 } }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -354,7 +359,7 @@ export const MarketsTable = memo(function MarketsTable({
           )}
         </Stack>
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
@@ -369,8 +374,17 @@ export const MarketsTable = memo(function MarketsTable({
         </Stack>
       </Stack>
 
-      <TableContainer component={Paper}>
-        <Table>
+      <TableContainer
+        component={Paper}
+        sx={{
+          width: '100%',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
+        <Table sx={{ minWidth: 980 }}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -421,15 +435,12 @@ export const MarketsTable = memo(function MarketsTable({
         </Table>
       </TableContainer>
 
-      {pagination && pagination.totalPages > 1 && (
-        <Stack direction="row" justifyContent="center" sx={{ mt: designTokens.spacing.sectionGap }}>
-          <Pagination
-            count={pagination.totalPages}
-            page={pagination.page}
-            onChange={handlePageChange}
-            color="primary"
-          />
-        </Stack>
+      {pagination && (
+        <PrevNextPagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={(page) => onFilterChange({ page })}
+        />
       )}
 
       {/* Actions Menu */}

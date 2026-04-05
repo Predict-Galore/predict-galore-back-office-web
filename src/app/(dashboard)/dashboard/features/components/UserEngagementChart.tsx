@@ -21,6 +21,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { TableLoadingState, TableErrorState } from '@/shared/components/TableStates';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 interface UserEngagementChartProps {
   timeRange?: TimeRange;
@@ -55,6 +57,8 @@ const getDateRange = (timeRange: TimeRange = 'default') => {
 const UserEngagementChart = memo(function UserEngagementChart({
   timeRange = 'default',
 }: UserEngagementChartProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _dateRange = useMemo(() => getDateRange(timeRange), [timeRange]);
   const { data, isLoading, error } = useDashboardEngagement();
@@ -121,19 +125,19 @@ const UserEngagementChart = memo(function UserEngagementChart({
   }
 
   return (
-    <Card>
-      <CardContent>
+    <Card sx={{ minWidth: 0, overflowX: 'hidden' }}>
+      <CardContent sx={{ minWidth: 0, overflowX: 'hidden' }}>
         <Typography variant="h6" gutterBottom>
           User Engagement
         </Typography>
-        <Box sx={{ width: '100%', height: 400, mt: designTokens.spacing.itemGap }}>
+        <Box sx={{ width: '100%', height: { xs: 280, sm: 360, md: 400 }, mt: designTokens.spacing.itemGap }}>
           <ResponsiveContainer>
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="date" tick={{ fontSize: isMobile ? 10 : 12 }} interval="preserveStartEnd" />
               <YAxis />
               <Tooltip />
-              <Legend />
+              {!isMobile && <Legend />}
               <Bar dataKey="activeUsers" fill="#0EA5E9" name="Active Users" />
               <Bar dataKey="newUsers" fill="#10B981" name="New Users" />
               <Bar dataKey="returningUsers" fill="#3B82F6" name="Returning Users" />

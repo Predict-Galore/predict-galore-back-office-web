@@ -19,13 +19,19 @@ import {
   FormControlLabel,
   Alert,
   Snackbar,
-  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
 } from '@mui/icons-material';
-import { useCreateMarket, useUpdateMarket, Market } from '@/features/markets';
+import {
+  useCreateMarket,
+  useUpdateMarket,
+  useAddSelection,
+  useUpdateSelection,
+  useDeleteSelection,
+  Market,
+} from '@/features/markets';
 import { marketFormSchema, MarketFormValues } from '@/features/markets/validations/marketSchema';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -50,7 +56,15 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
   const isEditing = Boolean(market?.id);
   const createMarketMutation = useCreateMarket();
   const updateMarketMutation = useUpdateMarket();
-  const isLoading = createMarketMutation.isPending || updateMarketMutation.isPending;
+  const addSelectionMutation = useAddSelection();
+  const updateSelectionMutation = useUpdateSelection();
+  const deleteSelectionMutation = useDeleteSelection();
+  const isLoading =
+    createMarketMutation.isPending ||
+    updateMarketMutation.isPending ||
+    addSelectionMutation.isPending ||
+    updateSelectionMutation.isPending ||
+    deleteSelectionMutation.isPending;
 
   const {
     control,
@@ -74,6 +88,7 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'selections',
+    keyName: 'fieldId',
   });
 
   const onSubmit = async (data: MarketFormValues) => {
@@ -89,6 +104,53 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
         };
         
         await updateMarketMutation.mutateAsync({ id: market.id, data: updateData });
+
+        // Sync selections (add/update/delete) via dedicated endpoints
+        const existingSelections = Array.isArray(market.selections) ? market.selections : [];
+        const existingIds = new Set(
+          existingSelections.map((s) => s.id).filter((id): id is number => typeof id === 'number')
+        );
+        const submittedIds = new Set<number>();
+
+        const selectionOps: Promise<unknown>[] = [];
+
+        for (const selection of data.selections) {
+          if (selection.id && existingIds.has(selection.id)) {
+            submittedIds.add(selection.id);
+            selectionOps.push(
+              updateSelectionMutation.mutateAsync({
+                selectionId: selection.id,
+                data: {
+                  selectionLabel: selection.selectionLabel,
+                  sortOrder: selection.sortOrder,
+                  isActive: selection.isActive,
+                },
+              })
+            );
+          } else {
+            selectionOps.push(
+              addSelectionMutation.mutateAsync({
+                marketId: market.id,
+                data: {
+                  selectionKey: selection.selectionKey,
+                  selectionLabel: selection.selectionLabel,
+                  sortOrder: selection.sortOrder,
+                  isActive: selection.isActive,
+                },
+              })
+            );
+          }
+        }
+
+        for (const selectionId of existingIds) {
+          if (!submittedIds.has(selectionId)) {
+            selectionOps.push(deleteSelectionMutation.mutateAsync(selectionId));
+          }
+        }
+
+        if (selectionOps.length > 0) {
+          await Promise.all(selectionOps);
+        }
         
         // Invalidate queries to refresh data
         await queryClient.invalidateQueries({ queryKey: ['markets'] });
@@ -241,23 +303,15 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
             <Typography variant="h6">Selections</Typography>
-            {!isEditing && (
-              <Button
-                startIcon={<AddIcon />}
-                onClick={handleAddSelection}
-                disabled={isLoading}
-                size="small"
-              >
-                Add Selection
-              </Button>
-            )}
+            <Button
+              startIcon={<AddIcon />}
+              onClick={handleAddSelection}
+              disabled={isLoading}
+              size="small"
+            >
+              Add Selection
+            </Button>
           </Stack>
-
-          {isEditing && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Selections cannot be edited here. Use the market detail page to manage selections.
-            </Alert>
-          )}
 
           {errors.selections && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -266,9 +320,9 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
           )}
 
           <Stack spacing={2}>
-            {!isEditing && fields.map((field, index) => (
+            {fields.map((field, index) => (
               <Box
-                key={field.id}
+                key={field.fieldId}
                 sx={{
                   p: 2,
                   border: '1px solid',
@@ -300,8 +354,16 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
                         label="Selection Key"
                         placeholder="e.g., home_win"
                         error={!!errors.selections?.[index]?.selectionKey}
-                        helperText={errors.selections?.[index]?.selectionKey?.message}
-                        disabled={isLoading}
+                        helperText={
+                          errors.selections?.[index]?.selectionKey?.message ||
+                          ((isEditing && typeof (fields[index] as { id?: number }).id === 'number')
+                            ? 'Selection key cannot be edited'
+                            : undefined)
+                        }
+                        disabled={
+                          isLoading ||
+                          (isEditing && typeof (fields[index] as { id?: number }).id === 'number')
+                        }
                         size="small"
                         fullWidth
                       />
@@ -358,23 +420,6 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
                 </Stack>
               </Box>
             ))}
-            {isEditing && market?.selections && market.selections.length > 0 && (
-              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  Current Selections ({market.selections.length}):
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {market.selections.map((selection, index) => (
-                    <Chip
-                      key={selection.id || index}
-                      label={selection.selectionLabel}
-                      size="small"
-                      color={selection.isActive ? 'success' : 'default'}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            )}
           </Stack>
         </Box>
 
@@ -385,7 +430,7 @@ export const MarketForm: React.FC<MarketFormProps> = ({ market, onSuccess, onCan
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isLoading}>
-            {isLoading ? 'Creating...' : isEditing ? 'Update Market' : 'Create Market'}
+            {isLoading ? 'Saving...' : isEditing ? 'Update Market' : 'Create Market'}
           </Button>
         </Stack>
       </Stack>

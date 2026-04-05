@@ -97,9 +97,14 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           )}
         </Box>
 
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ width: { xs: '100%', sm: 'auto' }, flexWrap: { sm: 'wrap' } }}
+        >
           {showTimeRange && timeRange !== undefined && onTimeRangeChange && (
-            <FormControl size="small" sx={{ minWidth: 140 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 140 } }}>
               <InputLabel>Time Range</InputLabel>
               <Select
                 value={timeRange}

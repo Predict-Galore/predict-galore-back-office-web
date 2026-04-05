@@ -21,7 +21,12 @@ export const useUsersStore = create<UsersState>((set) => ({
   filters: defaultFilters,
   setFilters: (newFilters) =>
     set((state) => ({
-      filters: { ...state.filters, ...newFilters, page: 1 },
+      filters: {
+        ...state.filters,
+        ...newFilters,
+        // Only reset page when changing non-page filters
+        page: newFilters.page ?? 1,
+      },
     })),
   clearFilters: () => set({ filters: defaultFilters }),
 }));

@@ -79,7 +79,7 @@ export default function MarketDetailPage() {
   }
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
       {/* Back Button */}
       <Button 
         startIcon={<ArrowBackIcon />} 
@@ -89,7 +89,7 @@ export default function MarketDetailPage() {
         Back to Markets
       </Button>
 
-      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         <Button variant="contained" startIcon={<EditIcon />} onClick={handleEdit}>
           Edit Market
         </Button>

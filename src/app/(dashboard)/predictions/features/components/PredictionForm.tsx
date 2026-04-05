@@ -436,8 +436,8 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onSuccess, onCan
               <Image
                 src="/ask-huddle-button.png"
                 alt="Ask Huddle"
-                width={80}
-                height={200}
+                width={56}
+                height={160}
                 style={{
                   objectFit: 'contain',
                   display: 'block',
@@ -449,17 +449,17 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onSuccess, onCan
                 sx={{
                   background: 'linear-gradient(135deg, #6bc330 0%, #4ca020 100%)',
                   color: 'white',
-                  padding: '20px 10px',
+                  padding: '14px 8px',
                   writingMode: 'vertical-rl',
                   textOrientation: 'mixed',
                   fontWeight: 600,
-                  fontSize: '14px',
+                  fontSize: '12px',
                   borderRadius: 0,
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   cursor: 'pointer',
                   transition: 'all 0.3s',
                   '&:hover': {
-                    transform: 'scale(1.05)',
+                    transform: 'scale(1.03)',
                   },
                 }}
               >

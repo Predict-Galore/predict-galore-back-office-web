@@ -81,17 +81,20 @@ function PredictionsPageClient() {
   }, [refetch, refetchAnalytics, queryClient]);
 
   const handleFilterChange = useCallback((newFilters: Partial<PredictionsFilter>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({
+      ...prev,
+      ...newFilters,
+      // Only reset page when changing non-page filters
+      page: newFilters.page ?? 1,
+    }));
   }, []);
 
   const handleAddPrediction = useCallback(() => {
     router.push('/predictions/new');
   }, [router]);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleEditPrediction = useCallback((_prediction: Prediction) => {
-    // TODO: Implement edit functionality when PredictionForm supports editing
-    router.push('/predictions/new');
+  const handleEditPrediction = useCallback((prediction: Prediction) => {
+    router.push(`/predictions/${prediction.id}`);
   }, [router]);
 
   const handleDeletePrediction = useCallback(async (prediction: Prediction) => {

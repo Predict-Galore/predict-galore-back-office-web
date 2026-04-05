@@ -94,7 +94,13 @@ export default function MarketsPageClient() {
   }, [refetch]);
 
   return (
-    <Box>
+    <Box
+      sx={{
+        width: '100%',
+        px: { xs: 2, sm: 3, md: 4 },
+        py: designTokens.spacing.xl,
+      }}
+    >
       <PageHeader
         title="Markets"
         subtitle="Manage prediction markets and selections"

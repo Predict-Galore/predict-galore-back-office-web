@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, memo, useCallback, useMemo } from 'react';
+import { useState, memo, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -16,24 +16,21 @@ import {
   ListItemText,
   Avatar,
   Divider,
-  Button,
-  ButtonGroup,
   CircularProgress,
 } from '@mui/material';
 import Stack from '@mui/material/Stack';
 import { designTokens } from '@/shared/styles/tokens';
 import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useDashboardActivity } from '@/features/dashboard';
+import { PrevNextPagination } from '@/shared/components/PrevNextPagination';
 
 interface ActivityLogProps {
   refreshKey?: number;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 // Helper function to format timestamps relative to now
 const formatTimestamp = (timestamp: string): string => {
@@ -57,23 +54,22 @@ const ActivityLog = memo(function ActivityLog({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   refreshKey: _refreshKey 
 }: ActivityLogProps) {
-  const [offset, setOffset] = useState(0);
+  const [page, setPage] = useState(1);
   const { data, isLoading, error } = useDashboardActivity();
 
   const activities = useMemo(() => data?.activities || [], [data?.activities]);
-  const totalItems = useMemo(() => data?.total || 0, [data?.total]);
+  const totalItems = useMemo(() => activities.length, [activities.length]);
   const totalPages = useMemo(() => Math.ceil(totalItems / ITEMS_PER_PAGE), [totalItems]);
-  const currentPage = useMemo(() => Math.floor(offset / ITEMS_PER_PAGE) + 1, [offset]);
+  const pagedActivities = useMemo(
+    () => activities.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [activities, page]
+  );
 
-  const handlePrevious = useCallback(() => {
-    setOffset((prev) => Math.max(0, prev - ITEMS_PER_PAGE));
-  }, []);
-
-  const handleNext = useCallback(() => {
-    if (currentPage < totalPages) {
-      setOffset((prev) => prev + ITEMS_PER_PAGE);
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(1);
     }
-  }, [currentPage, totalPages]);
+  }, [page, totalPages]);
 
   if (isLoading) {
     return (
@@ -127,36 +123,27 @@ const ActivityLog = memo(function ActivityLog({
   }
 
   return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: designTokens.spacing.itemGap }}>
+    <Card sx={{ height: '100%', minWidth: 0, overflowX: 'hidden' }}>
+      <CardContent sx={{ minWidth: 0, overflowX: 'hidden' }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          spacing={1}
+          sx={{ mb: designTokens.spacing.itemGap }}
+        >
           <Typography variant="h6">Recent Activity</Typography>
-          <ButtonGroup size="small">
-            <Button
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-              startIcon={<ChevronLeftIcon />}
-            >
-              Prev
-            </Button>
-            <Button
-              onClick={handleNext}
-              disabled={currentPage >= totalPages}
-              endIcon={<ChevronRightIcon />}
-            >
-              Next
-            </Button>
-          </ButtonGroup>
         </Stack>
 
         <List>
-          {activities.map((activity, index) => (
+          {pagedActivities.map((activity, index) => (
             <Box key={activity.id}>
               <ListItem alignItems="flex-start" sx={{ px: 0 }}>
                 <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
                   {activity.actorDisplayName?.[0]?.toUpperCase() || activity.title?.[0]?.toUpperCase() || activity.category?.[0]?.toUpperCase() || 'A'}
                 </Avatar>
                 <ListItemText
+                  sx={{ minWidth: 0 }}
                   primary={activity.title}
                   secondary={
                     <>
@@ -180,10 +167,12 @@ const ActivityLog = memo(function ActivityLog({
                   }
                 />
               </ListItem>
-              {index < activities.length - 1 && <Divider variant="inset" component="li" />}
+              {index < pagedActivities.length - 1 && <Divider variant="inset" component="li" />}
             </Box>
           ))}
         </List>
+
+        <PrevNextPagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </CardContent>
     </Card>
   );
