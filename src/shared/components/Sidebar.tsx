@@ -26,6 +26,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/features/auth';
@@ -56,7 +57,7 @@ const navigationItems: NavigationItem[] = [
     label: 'Predictions', 
     path: '/predictions',
     subItems: [
-      { label: 'All Predictions', path: '/predictions' },
+      { label: 'All Predictions', path: '/predictions', icon: <FormatListBulletedIcon /> },
       { label: 'Markets', path: '/predictions/markets', icon: <StorefrontIcon /> },
     ],
   },
@@ -263,7 +264,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: Sidebar
                   )}
                 </ListItem>
 
-                {/* Submenu items */}
+                {/* Submenu items — expanded sidebar */}
                 {hasSubItems && !(collapsed && !isMobile) && (
                   <Collapse in={isExpanded} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
@@ -324,6 +325,49 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: Sidebar
                       })}
                     </List>
                   </Collapse>
+                )}
+
+                {/* Submenu items — collapsed sidebar (icon-only with tooltips) */}
+                {hasSubItems && collapsed && !isMobile && (
+                  <List component="div" disablePadding>
+                    {item.subItems?.map((subItem, subIndex) => {
+                      const subActive = isActive(subItem.path);
+                      return (
+                        <ListItem key={subIndex} disablePadding sx={{ display: 'block' }}>
+                          <Tooltip title={subItem.label} placement="right">
+                            <ListItemButton
+                              selected={subActive}
+                              onClick={() => router.push(subItem.path)}
+                              sx={{
+                                borderRadius: 1,
+                                mx: 0.5,
+                                my: 0.25,
+                                justifyContent: 'center',
+                                '&.Mui-selected': {
+                                  backgroundColor: 'rgba(66, 166, 5, 0.12)',
+                                  '& .MuiListItemIcon-root': { color: 'primary.main' },
+                                },
+                                '&:hover': {
+                                  backgroundColor: 'rgba(66, 166, 5, 0.08)',
+                                  '& .MuiListItemIcon-root': { color: 'primary.main' },
+                                },
+                              }}
+                            >
+                              <ListItemIcon
+                                sx={{
+                                  minWidth: 'auto',
+                                  justifyContent: 'center',
+                                  color: subActive ? 'primary.main' : 'text.secondary',
+                                }}
+                              >
+                                <Box sx={{ fontSize: 'small' }}>{subItem.icon}</Box>
+                              </ListItemIcon>
+                            </ListItemButton>
+                          </Tooltip>
+                        </ListItem>
+                      );
+                    })}
+                  </List>
                 )}
               </React.Fragment>
             );

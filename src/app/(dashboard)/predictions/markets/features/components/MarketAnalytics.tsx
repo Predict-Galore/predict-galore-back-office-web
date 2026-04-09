@@ -7,7 +7,7 @@
 import { memo } from 'react';
 import { Box, Grid, Paper, Typography, Stack, Skeleton } from '@mui/material';
 import { designTokens } from '@/shared/styles/tokens';
-import { useMarketsAnalytics } from '@/features/markets';
+import type { MarketsAnalytics } from '@/features/markets';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -23,7 +23,7 @@ interface AnalyticsCardProps {
 
 const AnalyticsCard = memo(function AnalyticsCard({ title, value, change, icon, color }: AnalyticsCardProps) {
   const changeColor = change && change > 0 ? designTokens.colors.success[600] : designTokens.colors.error[600];
-  
+
   return (
     <Paper sx={{ p: 3, height: '100%' }}>
       <Stack spacing={2}>
@@ -61,9 +61,12 @@ const AnalyticsCard = memo(function AnalyticsCard({ title, value, change, icon, 
   );
 });
 
-export const MarketAnalytics = memo(function MarketAnalytics() {
-  const { data: analytics, isLoading } = useMarketsAnalytics();
+interface MarketAnalyticsProps {
+  analytics: MarketsAnalytics | null;
+  isLoading: boolean;
+}
 
+export const MarketAnalytics = memo(function MarketAnalytics({ analytics, isLoading }: MarketAnalyticsProps) {
   if (isLoading) {
     return (
       <Grid container spacing={2}>

@@ -32,6 +32,7 @@ interface PredictionAnalysisStepProps {
   formValues: {
     analysis: string;
     accuracy: number;
+    fixtureId: string;
   };
   methods: UseFormReturn<SportsPredictionFormValues>;
 }
@@ -61,7 +62,8 @@ export const PredictionAnalysisStep: React.FC<PredictionAnalysisStepProps> = ({
   methods,
 }) => {
   const { setValue, register } = methods;
-  const { analysis, accuracy } = formValues;
+  const { analysis, accuracy, fixtureId } = formValues;
+  const fixtureIdNum = fixtureId ? Number(fixtureId) : undefined;
 
   // Get all markets
   const { data: marketsData, isLoading: isMarketsLoading } = useMarkets();
@@ -83,12 +85,13 @@ export const PredictionAnalysisStep: React.FC<PredictionAnalysisStepProps> = ({
     return ids;
   }, []);
 
-  // Fetch selections for each market (using conditional hooks)
-  const selections1 = useMarketSelections({ marketId: marketIds[0] }, { enabled: !!marketIds[0] });
-  const selections2 = useMarketSelections({ marketId: marketIds[1] }, { enabled: !!marketIds[1] });
-  const selections3 = useMarketSelections({ marketId: marketIds[2] }, { enabled: !!marketIds[2] });
-  const selections4 = useMarketSelections({ marketId: marketIds[3] }, { enabled: !!marketIds[3] });
-  const selections5 = useMarketSelections({ marketId: marketIds[4] }, { enabled: !!marketIds[4] });
+  // Fetch selections for each market (using conditional hooks).
+  // fixtureId is forwarded so goalscorer markets (6 & 7) get player lists.
+  const selections1 = useMarketSelections({ marketId: marketIds[0], fixtureId: fixtureIdNum }, { enabled: !!marketIds[0] });
+  const selections2 = useMarketSelections({ marketId: marketIds[1], fixtureId: fixtureIdNum }, { enabled: !!marketIds[1] });
+  const selections3 = useMarketSelections({ marketId: marketIds[2], fixtureId: fixtureIdNum }, { enabled: !!marketIds[2] });
+  const selections4 = useMarketSelections({ marketId: marketIds[3], fixtureId: fixtureIdNum }, { enabled: !!marketIds[3] });
+  const selections5 = useMarketSelections({ marketId: marketIds[4], fixtureId: fixtureIdNum }, { enabled: !!marketIds[4] });
 
   const marketSelectionQueries = [selections1, selections2, selections3, selections4, selections5];
 

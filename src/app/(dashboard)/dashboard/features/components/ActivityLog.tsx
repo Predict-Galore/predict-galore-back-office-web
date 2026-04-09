@@ -1,6 +1,5 @@
 /**
  * Activity Log Component
- * Clean, simple implementation
  */
 
 'use client';
@@ -11,18 +10,12 @@ import {
   Card,
   CardContent,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Avatar,
   Divider,
   CircularProgress,
+  Chip,
 } from '@mui/material';
 import Stack from '@mui/material/Stack';
-import { designTokens } from '@/shared/styles/tokens';
-import {
-  Warning as WarningIcon,
-} from '@mui/icons-material';
+import { Warning as WarningIcon } from '@mui/icons-material';
 import { useDashboardActivity } from '@/features/dashboard';
 import { PrevNextPagination } from '@/shared/components/PrevNextPagination';
 
@@ -32,43 +25,36 @@ interface ActivityLogProps {
 
 const ITEMS_PER_PAGE = 5;
 
-// Helper function to format timestamps relative to now
-const formatTimestamp = (timestamp: string): string => {
-  const now = new Date();
-  const activityTime = new Date(timestamp);
-  const diffInMinutes = Math.floor((now.getTime() - activityTime.getTime()) / (1000 * 60));
-
-  if (diffInMinutes < 1) return 'Just now';
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays < 7) return `${diffInDays}d ago`;
-
-  return activityTime.toLocaleDateString();
+const formatDateTime = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
 
-const ActivityLog = memo(function ActivityLog({ 
+const ActivityLog = memo(function ActivityLog({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  refreshKey: _refreshKey 
+  refreshKey: _refreshKey,
 }: ActivityLogProps) {
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useDashboardActivity();
 
-  const activities = useMemo(() => data?.activities || [], [data?.activities]);
-  const totalItems = useMemo(() => activities.length, [activities.length]);
-  const totalPages = useMemo(() => Math.ceil(totalItems / ITEMS_PER_PAGE), [totalItems]);
+  const activities = useMemo(() => data?.activities ?? [], [data]);
+  const totalPages = useMemo(
+    () => Math.ceil(activities.length / ITEMS_PER_PAGE),
+    [activities.length]
+  );
   const pagedActivities = useMemo(
     () => activities.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
     [activities, page]
   );
 
   useEffect(() => {
-    if (page > totalPages && totalPages > 0) {
-      setPage(1);
-    }
+    if (page > totalPages && totalPages > 0) setPage(1);
   }, [page, totalPages]);
 
   if (isLoading) {
@@ -77,9 +63,7 @@ const ActivityLog = memo(function ActivityLog({
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
             <CircularProgress sx={{ mb: 2 }} />
-            <Typography variant="body2" color="text.secondary">
-              Loading activity...
-            </Typography>
+            <Typography variant="body2" color="text.secondary">Loading activity...</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -92,30 +76,20 @@ const ActivityLog = memo(function ActivityLog({
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
             <WarningIcon sx={{ fontSize: 48, color: 'error.main', mb: 2 }} />
-            <Typography variant="h6" color="error.main" gutterBottom>
-              Unable to Load Activity
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Failed to load activity
-            </Typography>
+            <Typography variant="h6" color="error.main">Unable to Load Activity</Typography>
           </Box>
         </CardContent>
       </Card>
     );
   }
 
-  if (activities.length === 0) {
+  if (!activities.length) {
     return (
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 4 }}>
             <WarningIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>
-              No Activity Found
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              No activity found
-            </Typography>
+            <Typography variant="h6" color="text.secondary">No Activity Found</Typography>
           </Box>
         </CardContent>
       </Card>
@@ -125,52 +99,39 @@ const ActivityLog = memo(function ActivityLog({
   return (
     <Card sx={{ height: '100%', minWidth: 0, overflowX: 'hidden' }}>
       <CardContent sx={{ minWidth: 0, overflowX: 'hidden' }}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          spacing={1}
-          sx={{ mb: designTokens.spacing.itemGap }}
-        >
-          <Typography variant="h6">Recent Activity</Typography>
-        </Stack>
+        <Typography variant="h6" sx={{ mb: 2 }}>Recent Activity</Typography>
 
-        <List>
-          {pagedActivities.map((activity, index) => (
-            <Box key={activity.id}>
-              <ListItem alignItems="flex-start" sx={{ px: 0 }}>
-                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
-                  {activity.actorDisplayName?.[0]?.toUpperCase() || activity.title?.[0]?.toUpperCase() || activity.category?.[0]?.toUpperCase() || 'A'}
-                </Avatar>
-                <ListItemText
-                  sx={{ minWidth: 0 }}
-                  primary={activity.title}
-                  secondary={
-                    <>
-                      <Typography component="span" variant="body2" color="text.primary">
-                        {activity.description}
-                      </Typography>
-                      {activity.actorDisplayName && (
-                        <>
-                          <br />
-                          <Typography component="span" variant="caption" color="text.secondary">
-                            {activity.actorDisplayName}
-                            {activity.actorRole && ` • ${activity.actorRole}`}
-                          </Typography>
-                        </>
-                      )}
-                      <br />
-                      <Typography component="span" variant="caption" color="text.secondary">
-                        {formatTimestamp(activity.createdAtUtc)}
-                      </Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-              {index < pagedActivities.length - 1 && <Divider variant="inset" component="li" />}
+        {pagedActivities.map((activity, index) => (
+          <Box key={activity.id}>
+            <Box sx={{ py: 1.5 }}>
+              {/* Category — right aligned */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 0.5 }}>
+                <Chip label={activity.category} size="small" variant="outlined" />
+              </Box>
+
+              {/* Title */}
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.25 }}>
+                {activity.title}
+              </Typography>
+
+              {/* Description */}
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
+                {activity.description}
+              </Typography>
+
+              {/* Actor + Date — justify between */}
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="caption" color="text.secondary">
+                  {activity.actorDisplayName}
+                </Typography>
+                <Typography variant="caption" color="text.disabled">
+                  {formatDateTime(activity.createdAtUtc)}
+                </Typography>
+              </Stack>
             </Box>
-          ))}
-        </List>
+            {index < pagedActivities.length - 1 && <Divider />}
+          </Box>
+        ))}
 
         <PrevNextPagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </CardContent>

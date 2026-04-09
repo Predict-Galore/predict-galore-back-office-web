@@ -380,7 +380,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onSuccess, onCan
           onRemovePick={handleRemovePick}
           onPickChange={handlePickChange}
           errors={errors}
-          formValues={{ analysis, accuracy }}
+          formValues={{ analysis, accuracy, fixtureId }}
           methods={formMethods}
         />
       ),

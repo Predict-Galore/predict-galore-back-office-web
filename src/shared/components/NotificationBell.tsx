@@ -6,17 +6,15 @@ import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
 import { alpha, useTheme } from '@mui/material/styles';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { useUnreadCount } from '@/features/notifications';
 
 interface NotificationBellProps {
   open: boolean;
   onToggle: () => void;
+  unreadCount: number;
 }
 
-const NotificationBell = ({ open, onToggle }: NotificationBellProps) => {
+const NotificationBell = ({ open, onToggle, unreadCount }: NotificationBellProps) => {
   const theme = useTheme();
-  const { data: unreadCountData } = useUnreadCount();
-  const unreadCount = unreadCountData || 0;
 
   return (
     <Box sx={{ position: 'relative' }}>

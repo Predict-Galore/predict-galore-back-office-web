@@ -137,7 +137,7 @@ export function useMarkets(filters?: { fixtureId?: number }) {
 
 // Get market selections hook
 export function useMarketSelections(
-  filters?: { marketId?: number },
+  filters?: { marketId?: number; fixtureId?: number },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
@@ -149,4 +149,3 @@ export function useMarketSelections(
     enabled: options?.enabled !== false && !!filters?.marketId,
   });
 }
-

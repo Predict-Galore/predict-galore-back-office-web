@@ -28,6 +28,8 @@ import type {
   Selection,
 } from './types';
 
+const GOALSCORER_MARKET_IDS = [6, 7];
+
 export class PredictionsService {
   /**
    * Get predictions list
@@ -179,15 +181,27 @@ export class PredictionsService {
   }
 
   /**
-   * Get market selections
+   * Get market selections.
+   * For goalscorer markets (ids 6 & 7), fixtureId must be provided
+   * so the API can return players from both teams.
    */
   static async getMarketSelections(filters?: {
     marketId?: number;
+    fixtureId?: number;
   }): Promise<Selection[]> {
     if (!filters?.marketId) {
       throw new Error('marketId is required for getting market selections');
     }
-    const response = await api.get<unknown>(API_CONFIG.endpoints.selections.list(filters.marketId));
+
+    const params =
+      GOALSCORER_MARKET_IDS.includes(filters.marketId) && filters.fixtureId
+        ? { fixtureId: filters.fixtureId }
+        : undefined;
+
+    const response = await api.get<unknown>(
+      API_CONFIG.endpoints.selections.list(filters.marketId),
+      params
+    );
 
     const maybeWrapped = response as Partial<SelectionsResponse> & {
       data?: unknown;

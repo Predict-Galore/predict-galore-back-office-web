@@ -27,11 +27,18 @@ import {
   Avatar,
   Typography,
   Checkbox,
+  IconButton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Search as SearchIcon,
   Download as DownloadIcon,
+  MoreVert as MoreVertIcon,
+  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import Stack from '@mui/material/Stack';
 import {
@@ -64,7 +71,7 @@ interface UserRowProps {
   user: User;
   isSelected: boolean;
   onSelect: (userId: string, user: User) => void;
-  onViewDetails: (userId: string) => void;
+  onMenuOpen: (event: React.MouseEvent<HTMLElement>, user: User) => void;
   style?: React.CSSProperties;
 }
 
@@ -72,7 +79,7 @@ const UserRow = memo(function UserRow({
   user,
   isSelected,
   onSelect,
-  onViewDetails,
+  onMenuOpen,
   style,
 }: UserRowProps) {
   const userInitials = generateUserInitials(user.firstName, user.lastName);
@@ -117,8 +124,8 @@ const UserRow = memo(function UserRow({
       </TableCell>
       <TableCell>{user.email}</TableCell>
       <TableCell>
-        <Chip 
-          label={user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'} 
+        <Chip
+          label={user.plan ? user.plan.charAt(0).toUpperCase() + user.plan.slice(1) : 'Free'}
           size="small"
           color={user.plan === 'premium' || user.plan === 'enterprise' ? 'success' : 'default'}
         />
@@ -132,16 +139,9 @@ const UserRow = memo(function UserRow({
       </TableCell>
       <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
       <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails(user.id);
-          }}
-        >
-          View Details
-        </Button>
+        <IconButton size="small" onClick={(e) => onMenuOpen(e, user)}>
+          <MoreVertIcon />
+        </IconButton>
       </TableCell>
     </TableRow>
   );
@@ -179,6 +179,8 @@ export const UsersTable = memo(function UsersTable({
   const router = useRouter();
   const [search, setSearch] = useState(filters.search || '');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuUser, setMenuUser] = useState<User | null>(null);
   
   // Debounce search input
   const debouncedSearch = useDebounce(search, 300);
@@ -234,11 +236,26 @@ export const UsersTable = memo(function UsersTable({
     router.push(`/users/${userId}`);
   }, [router]);
 
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>, user: User) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setMenuUser(user);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setAnchorEl(null);
+    setMenuUser(null);
+  }, []);
+
+  const handleMenuViewDetails = useCallback(() => {
+    if (menuUser) {
+      router.push(`/users/${menuUser.id}`);
+      handleMenuClose();
+    }
+  }, [menuUser, router, handleMenuClose]);
+
   return (
     <Box>
-      {/* Selected User Profile */}
-      {selectedUser && <SelectedUserProfile user={selectedUser} />}
-
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
@@ -374,7 +391,7 @@ export const UsersTable = memo(function UsersTable({
                   user={user}
                   isSelected={selectedIds.has(user.id)}
                   onSelect={handleSelectOne}
-                  onViewDetails={handleViewDetails}
+                  onMenuOpen={handleMenuOpen}
                 />
               ))}
             </TableBody>
@@ -389,6 +406,24 @@ export const UsersTable = memo(function UsersTable({
           onPageChange={(page) => onFilterChange({ page })}
         />
       )}
+
+      {/* Selected User Profile */}
+      {selectedUser && <SelectedUserProfile user={selectedUser} />}
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <MenuItem onClick={handleMenuViewDetails}>
+          <ListItemIcon>
+            <VisibilityIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>View Details</ListItemText>
+        </MenuItem>
+      </Menu>
 
     </Box>
   );

@@ -1,12 +1,14 @@
 /**
  * Prev/Next Pagination
- * Reusable pagination control that avoids page-number overflow on mobile.
+ * Icon-button based to avoid wrapping on small screens.
  */
 
 'use client';
 
 import { memo, useCallback } from 'react';
-import { Button, Stack, Typography } from '@mui/material';
+import { IconButton, Stack, Typography } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 export interface PrevNextPaginationProps {
   page: number;
@@ -33,35 +35,21 @@ export const PrevNextPagination = memo(function PrevNextPagination({
 
   return (
     <Stack
-      direction={{ xs: 'column', sm: 'row' }}
+      direction="row"
       spacing={1}
-      alignItems={{ xs: 'stretch', sm: 'center' }}
+      alignItems="center"
       justifyContent="center"
-      sx={{ mt: 3, flexWrap: 'wrap' }}
+      sx={{ mt: 3 }}
     >
-      <Button
-        size={size}
-        variant="outlined"
-        onClick={handlePrev}
-        disabled={page <= 1}
-      >
-        Previous
-      </Button>
-      <Typography
-        variant="body2"
-        color="text.secondary"
-        sx={{ textAlign: 'center', minWidth: { sm: 110 }, flexGrow: { sm: 1 } }}
-      >
+      <IconButton size={size} onClick={handlePrev} disabled={page <= 1}>
+        <ChevronLeftIcon />
+      </IconButton>
+      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80, textAlign: 'center' }}>
         Page {page} of {totalPages}
       </Typography>
-      <Button
-        size={size}
-        variant="outlined"
-        onClick={handleNext}
-        disabled={page >= totalPages}
-      >
-        Next
-      </Button>
+      <IconButton size={size} onClick={handleNext} disabled={page >= totalPages}>
+        <ChevronRightIcon />
+      </IconButton>
     </Stack>
   );
 });
