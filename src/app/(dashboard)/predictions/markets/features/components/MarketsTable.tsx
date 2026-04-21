@@ -106,20 +106,12 @@ const MarketRow = memo(function MarketRow({
       </TableCell>
       <TableCell>{market.id}</TableCell>
       <TableCell>
-        <Typography variant="body2" fontWeight={600}>
+        <Typography variant="body2" fontWeight={500}>
           {market.displayName}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {market.name}
-        </Typography>
       </TableCell>
       <TableCell>
-        <Chip label={market.category} size="small" />
-      </TableCell>
-      <TableCell>
-        <Typography variant="body2" noWrap sx={{ maxWidth: 300 }}>
-          {market.description}
-        </Typography>
+        <Chip label={market.category} size="small" variant="outlined" />
       </TableCell>
       <TableCell align="center">{market.selections?.length || 0}</TableCell>
       <TableCell>
@@ -291,7 +283,6 @@ export const MarketsTable = memo(function MarketsTable({
       { key: 'name', label: 'Market Name' },
       { key: 'displayName', label: 'Display Name' },
       { key: 'category', label: 'Category' },
-      { key: 'description', label: 'Description' },
       { key: 'sortOrder', label: 'Sort Order' },
       { key: 'isActive', label: 'Status', format: (value) => value ? 'Active' : 'Inactive' },
       { key: 'selections', label: 'Selections Count', format: (value) => String((value as unknown[])?.length || 0) },
@@ -303,9 +294,6 @@ export const MarketsTable = memo(function MarketsTable({
 
   return (
     <Box>
-      {/* Selected Market Profile */}
-      {selectedMarket && <SelectedMarketProfile market={selectedMarket} />}
-
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
@@ -384,37 +372,34 @@ export const MarketsTable = memo(function MarketsTable({
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        <Table sx={{ minWidth: 980 }}>
+        <Table sx={{ minWidth: 600, tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell padding="checkbox">
-                {/* Single-select: no select all checkbox */}
-              </TableCell>
-              <TableCell>ID</TableCell>
-              <TableCell>Market Name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell align="center">Selections</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell padding="checkbox" sx={{ width: 52 }} />
+              <TableCell sx={{ width: '8%' }}>ID</TableCell>
+              <TableCell sx={{ width: '30%' }}>Market Name</TableCell>
+              <TableCell sx={{ width: '20%' }}>Category</TableCell>
+              <TableCell align="center" sx={{ width: '15%' }}>Selections</TableCell>
+              <TableCell sx={{ width: '15%' }}>Status</TableCell>
+              <TableCell align="right" sx={{ width: '12%' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           {isLoading ? (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4 }}>
+                <TableCell colSpan={7} sx={{ textAlign: 'center', py: 4 }}>
                   <TableLoadingState message="Loading markets..." />
                 </TableCell>
               </TableRow>
             </TableBody>
           ) : error ? (
             <TableBody>
-              <TableErrorState colSpan={8} message="Failed to load markets. Please try again." onRetry={onRefresh} />
+              <TableErrorState colSpan={7} message="Failed to load markets. Please try again." onRetry={onRefresh} />
             </TableBody>
           ) : markets.length === 0 ? (
             <TableBody>
               <TableEmptyState
-                colSpan={8}
+                colSpan={7}
                 message="No markets found"
                 title="No Markets"
               />
@@ -442,6 +427,9 @@ export const MarketsTable = memo(function MarketsTable({
           onPageChange={(page) => onFilterChange({ page })}
         />
       )}
+
+      {/* Selected Market Profile */}
+      {selectedMarket && <SelectedMarketProfile market={selectedMarket} />}
 
       {/* Actions Menu */}
       <Menu 

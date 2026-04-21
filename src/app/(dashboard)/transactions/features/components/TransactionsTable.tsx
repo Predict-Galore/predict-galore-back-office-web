@@ -326,9 +326,6 @@ export const TransactionsTable = memo(function TransactionsTable({
 
   return (
     <Box>
-      {/* Selected Transaction Profile */}
-      {selectedTransaction && <SelectedTransactionProfile transaction={selectedTransaction} />}
-
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
@@ -443,6 +440,9 @@ export const TransactionsTable = memo(function TransactionsTable({
           onPageChange={(page) => onFilterChange({ page })}
         />
       )}
+
+      {/* Selected Transaction Profile */}
+      {selectedTransaction && <SelectedTransactionProfile transaction={selectedTransaction} />}
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={handleViewDetails}>

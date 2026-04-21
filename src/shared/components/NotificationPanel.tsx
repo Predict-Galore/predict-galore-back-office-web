@@ -34,7 +34,6 @@ import NoNotificationsIcon from '@mui/icons-material/NotificationsNone';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import {
   useNotifications,
-  useUnreadCount,
   useMarkNotificationAsRead,
   useMarkAllNotificationsAsRead,
   useDeleteNotification,
@@ -63,6 +62,7 @@ interface Notification {
 interface NotificationPanelProps {
   open: boolean;
   onClose: () => void;
+  unreadCount: number;
 }
 
 interface NotificationTypeConfig {
@@ -82,14 +82,12 @@ interface SnackbarState {
   severity: 'success' | 'error' | 'info' | 'warning';
 }
 
-const NotificationPanel = ({ open, onClose }: NotificationPanelProps) => {
+const NotificationPanel = ({ open, onClose, unreadCount }: NotificationPanelProps) => {
   const theme = useTheme();
 
   // API Hooks
   const { data: notificationsData, isLoading, error, refetch } = useNotifications();
 
-  const { data: unreadCountData } = useUnreadCount();
-  const unreadCount = unreadCountData || 0;
   const markAsReadMutation = useMarkNotificationAsRead();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteNotificationMutation = useDeleteNotification();

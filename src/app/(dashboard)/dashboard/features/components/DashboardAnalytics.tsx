@@ -1,11 +1,10 @@
 /**
  * Dashboard Analytics Component
- * Clean, simple implementation
  */
 
 'use client';
 
-import { useMemo, memo } from 'react';
+import { memo } from 'react';
 import Box from '@mui/material/Box';
 import { AnalyticsCard } from '@/shared/components/AnalyticsCard';
 import { useDashboardSummary } from '@/features/dashboard';
@@ -14,43 +13,14 @@ import { People, Payment, TrendingUp } from '@mui/icons-material';
 import { TimeRange } from '@/shared/components/PageHeader';
 
 interface DashboardAnalyticsProps {
-  timeRange: TimeRange;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  timeRange: TimeRange; // kept for API compatibility, not used for fetching
 }
 
-const getDateRange = (timeRange: TimeRange) => {
-  const now = new Date();
-  const to = now.toISOString().split('T')[0];
-  let from: string;
-
-  switch (timeRange) {
-    case 'today':
-      from = to;
-      break;
-    case 'thisWeek':
-      const weekAgo = new Date(now);
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      from = weekAgo.toISOString().split('T')[0];
-      break;
-    case 'thisMonth':
-      const monthAgo = new Date(now);
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      from = monthAgo.toISOString().split('T')[0];
-      break;
-    default:
-      from = new Date(2020, 0, 1).toISOString().split('T')[0];
-  }
-
-  return { from, to };
-};
-
-const DashboardAnalytics = memo(function DashboardAnalytics({ 
-  timeRange
-}: DashboardAnalyticsProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _dateRange = useMemo(() => getDateRange(timeRange), [timeRange]);
+const DashboardAnalytics = memo(function DashboardAnalytics(_props: DashboardAnalyticsProps) {
+  // No date params — same query key as DashboardPageClient, TanStack Query deduplicates to one request
   const { data: summary, isLoading, error } = useDashboardSummary();
 
-  // Handle empty data state
   if (!isLoading && !error && (!summary || (
     summary.users?.totalUsers?.currentValue === 0 &&
     summary.payments?.totalPayments?.currentValue === 0 &&
@@ -68,7 +38,7 @@ const DashboardAnalytics = memo(function DashboardAnalytics({
         {[
           { title: 'Total Users', icon: <People /> },
           { title: 'Total Payments', icon: <Payment /> },
-          { title: 'Revenue', icon: <TrendingUp /> }
+          { title: 'Revenue', icon: <TrendingUp /> },
         ].map((item, index) => (
           <Box key={index}>
             <AnalyticsCard
@@ -122,7 +92,7 @@ const DashboardAnalytics = memo(function DashboardAnalytics({
       bgColor: '#FFFBEB',
       textColor: '#92400E',
       iconColor: '#F59E0B',
-      format: (val: number | undefined) => `$${(val || 0).toLocaleString()}`,
+      format: (val: number | undefined) => `${(val || 0).toLocaleString()}`,
     },
   ];
 

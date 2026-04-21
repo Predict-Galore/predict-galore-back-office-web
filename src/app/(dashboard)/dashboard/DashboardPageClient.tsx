@@ -1,6 +1,5 @@
 /**
  * Dashboard Page (Client)
- * Clean, simple implementation
  */
 
 'use client';
@@ -11,9 +10,8 @@ import Box from '@mui/material/Box';
 import dynamic from 'next/dynamic';
 import { DashboardPageLoadingSkeleton } from './features/components/DashboardPageLoadingSkeleton';
 import { useAuth } from '@/features/auth';
-import { useState, useCallback, memo, useMemo } from 'react';
-import { useDashboardSummary, useDashboardEngagement, useDashboardTraffic, useDashboardActivity } from '@/features/dashboard';
-import { getTimeRangeDates } from '@/shared/lib/helpers';
+import { useState, useCallback, memo } from 'react';
+import { useDashboardSummary } from '@/features/dashboard';
 import { useQueryClient } from '@tanstack/react-query';
 
 const DashboardAnalytics = dynamic(() => import('./features/components/DashboardAnalytics'), {
@@ -39,50 +37,30 @@ function DashboardPageClient() {
   const [timeRange, setTimeRange] = useState<TimeRange>('default');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Get date range from time range filter
-  const dateRange = useMemo(() => getTimeRangeDates(timeRange), [timeRange]);
+  // Single query with no date params — let the backend use its default range.
+  // Passing date params creates a different query key and causes a second API call.
+  const { isLoading, refetch } = useDashboardSummary();
 
-  // Fetch all dashboard data at page level to coordinate loading
-  const { isLoading: isSummaryLoading, refetch: refetchSummary } = useDashboardSummary(dateRange || undefined);
-  const { isLoading: isEngagementLoading, refetch: refetchEngagement } = useDashboardEngagement();
-  const { isLoading: isTrafficLoading, refetch: refetchTraffic } = useDashboardTraffic();
-  const { isLoading: isActivityLoading, refetch: refetchActivity } = useDashboardActivity();
-
-  // Show loading until all critical queries are complete
-  const isPageLoading = isSummaryLoading || isEngagementLoading || isTrafficLoading || isActivityLoading || isRefreshing;
+  const isPageLoading = isLoading || isRefreshing;
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      // Invalidate and refetch all dashboard queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['dashboard-engagement'] }),
-        queryClient.invalidateQueries({ queryKey: ['dashboard-traffic'] }),
-        queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] }),
-        refetchSummary(),
-        refetchEngagement(),
-        refetchTraffic(),
-        refetchActivity(),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      await refetch();
     } finally {
       setIsRefreshing(false);
     }
-  }, [queryClient, refetchSummary, refetchEngagement, refetchTraffic, refetchActivity]);
+  }, [queryClient, refetch]);
 
   const handleTimeRangeChange = useCallback((range: TimeRange) => {
     setTimeRange(range);
-    // Invalidate queries when time range changes to trigger refetch with new dates
     queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard-engagement'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard-traffic'] });
-    queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] });
   }, [queryClient]);
 
   return (
     <Box
       sx={{
-        // maxWidth: 1536,
         width: '100%',
         minWidth: 0,
         overflowX: 'hidden',
@@ -99,7 +77,6 @@ function DashboardPageClient() {
         user={user}
       />
 
-      {/* Show loading skeleton while loading */}
       {isPageLoading ? (
         <DashboardPageLoadingSkeleton />
       ) : (
@@ -126,7 +103,6 @@ function DashboardPageClient() {
           </Box>
         </>
       )}
-
     </Box>
   );
 }

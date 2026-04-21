@@ -13,6 +13,7 @@ import UserMenu from './UserMenu';
 import NotificationBell from './NotificationBell';
 import NotificationPanel from './NotificationPanel';
 import { useAuth, useProfile } from '@/features/auth';
+import { useUnreadCount } from '@/features/notifications';
 import type { User } from '@/features/auth/model/types';
 import type { ProfileResponse } from '@/features/auth/model/types';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -30,6 +31,7 @@ function Header({ onMenuToggle }: HeaderProps) {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user: authUser, logout } = useAuth();
   const { data: profileData } = useProfile();
+  const { data: unreadCount = 0 } = useUnreadCount();
 
   // State
   const [notificationOpen, setNotificationOpen] = useState(false);
@@ -131,8 +133,8 @@ function Header({ onMenuToggle }: HeaderProps) {
       >
         {/* Notification Bell with Panel */}
         <div ref={notificationRef}>
-          <NotificationBell open={notificationOpen} onToggle={handleNotificationToggle} />
-          <NotificationPanel open={notificationOpen} onClose={handleNotificationClose} />
+          <NotificationBell open={notificationOpen} onToggle={handleNotificationToggle} unreadCount={unreadCount} />
+          <NotificationPanel open={notificationOpen} onClose={handleNotificationClose} unreadCount={unreadCount} />
         </div>
 
         {/* User Profile */}

@@ -19,6 +19,8 @@ export function useMarkets(filters?: MarketsFilter) {
     queryFn: async () => {
       return await MarketsService.getMarkets(filters);
     },
+    staleTime: 30 * 1000, // 30s — prevents refetch storms on mount/focus
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -41,13 +43,8 @@ export function useMarketCategories() {
   });
 }
 
-export function useMarketsAnalytics() {
-  return useQuery({
-    queryKey: ['markets-analytics'],
-    queryFn: async () => {
-      return await MarketsService.getAnalytics();
-    },
-  });
+export function useMarketsAnalytics(markets: import('./types').Market[], total: number) {
+  return MarketsService.computeAnalytics(markets, total);
 }
 
 export function useCreateMarket() {

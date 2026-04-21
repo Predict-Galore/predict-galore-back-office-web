@@ -4,6 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { NotificationsService } from './service';
+import { useAuth } from '@/features/auth/model/store';
 
 export function useNotifications() {
   return useQuery({
@@ -15,14 +16,17 @@ export function useNotifications() {
 }
 
 export function useUnreadCount() {
+  const { token } = useAuth();
+
   return useQuery({
     queryKey: ['notifications-unread-count'],
     queryFn: async (): Promise<number> => {
       const result = await NotificationsService.getUnreadCount();
-      // Ensure we never return undefined
       return typeof result === 'number' ? result : 0;
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    enabled: !!token,
+    refetchInterval: 5 * 60 * 1000, // 5 minutes — standard for notification badges
+    refetchOnWindowFocus: false,
   });
 }
 

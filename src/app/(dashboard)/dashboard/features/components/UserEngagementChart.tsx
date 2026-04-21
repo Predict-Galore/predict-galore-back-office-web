@@ -1,6 +1,5 @@
 /**
  * User Engagement Chart Component
- * Clean, simple implementation
  */
 
 'use client';
@@ -11,13 +10,12 @@ import { designTokens } from '@/shared/styles/tokens';
 import { useDashboardEngagement } from '@/features/dashboard';
 import { TimeRange } from '@/shared/components/PageHeader';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import { TableLoadingState, TableErrorState } from '@/shared/components/TableStates';
@@ -28,54 +26,40 @@ interface UserEngagementChartProps {
   timeRange?: TimeRange;
 }
 
-const getDateRange = (timeRange: TimeRange = 'default') => {
-  const now = new Date();
-  const to = now.toISOString().split('T')[0];
-  let from: string;
-
-  switch (timeRange) {
-    case 'today':
-      from = to;
-      break;
-    case 'thisWeek':
-      const weekAgo = new Date(now);
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      from = weekAgo.toISOString().split('T')[0];
-      break;
-    case 'thisMonth':
-      const monthAgo = new Date(now);
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      from = monthAgo.toISOString().split('T')[0];
-      break;
-    default:
-      from = new Date(2020, 0, 1).toISOString().split('T')[0];
-  }
-
-  return { from, to };
-};
-
 const UserEngagementChart = memo(function UserEngagementChart({
   timeRange = 'default',
 }: UserEngagementChartProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _dateRange = useMemo(() => getDateRange(timeRange), [timeRange]);
+  const _timeRange = timeRange;
   const { data, isLoading, error } = useDashboardEngagement();
 
   const chartData = useMemo(() => {
-    // Handle the real API structure: data is an array of segments, each with points
     if (!data || !Array.isArray(data) || data.length === 0) return [];
 
-    // Get the first segment (usually segment 0 for all users)
-    const firstSegment = data.find(segment => segment.segment === 0) || data[0];
-    if (!firstSegment || !firstSegment.points || !Array.isArray(firstSegment.points)) return [];
+    // segment 0 = all users
+    const segment = data.find(s => s.segment === 0) ?? data[0];
+    if (!segment?.points?.length) return [];
 
-    return firstSegment.points.map((point) => ({
+    const points = segment.points;
+
+    // Filter to only points that have activity, then take the last 90 days worth.
+    // The API can return 2000+ daily points spanning years — rendering all of them
+    // causes Recharts to silently produce a blank chart.
+    const withActivity = points.filter(p => p.activeUsers > 0);
+    const lastActivityIndex = withActivity.length > 0
+      ? points.indexOf(withActivity[withActivity.length - 1])
+      : points.length - 1;
+
+    // Show a 90-day window ending at the last day with activity (or today)
+    const windowEnd = lastActivityIndex + 1;
+    const windowStart = Math.max(0, windowEnd - 90);
+    const window = points.slice(windowStart, windowEnd);
+
+    return window.map((point) => ({
       date: new Date(point.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      activeUsers: point.activeUsers || 0,
-      newUsers: 0, // Not provided in current API
-      returningUsers: 0, // Not provided in current API
+      activeUsers: point.activeUsers ?? 0,
     }));
   }, [data]);
 
@@ -93,30 +77,20 @@ const UserEngagementChart = memo(function UserEngagementChart({
     return (
       <Card>
         <CardContent>
-          <TableErrorState
-            colSpan={1}
-            message="Failed to load engagement data"
-            onRetry={() => {}}
-          />
+          <TableErrorState colSpan={1} message="Failed to load engagement data" onRetry={() => {}} />
         </CardContent>
       </Card>
     );
   }
 
-  // Handle empty data state
-  if (!isLoading && (!chartData || chartData.length === 0)) {
+  if (!chartData.length) {
     return (
       <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            User Engagement
-          </Typography>
+          <Typography variant="h6" gutterBottom>User Engagement</Typography>
           <Box sx={{ textAlign: 'center', py: 6 }}>
             <Typography variant="body2" color="text.secondary">
               No engagement data available
-            </Typography>
-            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 1 }}>
-              Data will appear here once users start engaging with the platform
             </Typography>
           </Box>
         </CardContent>
@@ -132,16 +106,30 @@ const UserEngagementChart = memo(function UserEngagementChart({
         </Typography>
         <Box sx={{ width: '100%', height: { xs: 280, sm: 360, md: 400 }, mt: designTokens.spacing.itemGap }}>
           <ResponsiveContainer>
-            <BarChart data={chartData}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="activeUsersGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: isMobile ? 10 : 12 }} interval="preserveStartEnd" />
-              <YAxis />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: isMobile ? 10 : 12 }}
+                interval="preserveStartEnd"
+              />
+              <YAxis allowDecimals={false} />
               <Tooltip />
-              {!isMobile && <Legend />}
-              <Bar dataKey="activeUsers" fill="#0EA5E9" name="Active Users" />
-              <Bar dataKey="newUsers" fill="#10B981" name="New Users" />
-              <Bar dataKey="returningUsers" fill="#3B82F6" name="Returning Users" />
-            </BarChart>
+              <Area
+                type="monotone"
+                dataKey="activeUsers"
+                stroke={theme.palette.primary.main}
+                fill="url(#activeUsersGradient)"
+                name="Active Users"
+                strokeWidth={2}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </Box>
       </CardContent>

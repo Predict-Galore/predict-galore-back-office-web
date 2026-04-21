@@ -40,15 +40,15 @@ export class MarketsService {
       if (filters.isActive !== undefined) apiFilters.IsActive = filters.isActive;
       if (filters.search !== undefined) apiFilters.Search = filters.search;
     }
-    
+
     const response = await api.get<MarketsResponse>(
       API_CONFIG.endpoints.markets.list,
       apiFilters
     );
-    
+
     const { page, pageSize, total, items } = response.data;
     const totalPages = Math.ceil(total / pageSize);
-    
+
     return {
       markets: items,
       pagination: {
@@ -81,45 +81,21 @@ export class MarketsService {
   }
 
   /**
-   * Get markets analytics
+   * Compute markets analytics from already-fetched page data.
+   * Avoids a separate fetch-all call — the total count comes from
+   * the pagination metadata returned by getMarkets.
    */
-  static async getAnalytics(): Promise<MarketsAnalytics> {
-    // Since there's no dedicated analytics endpoint, we'll fetch all markets and calculate
-    const PAGE_SIZE = 100;
-    let page = 1;
-    let total = 0;
-    const markets: Market[] = [];
-
-    // Fetch in pages to avoid huge pageSize requests
-    // Note: API expects `page` / `pageSize` (as currently used elsewhere in this codebase)
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const response = await api.get<MarketsResponse>(
-        API_CONFIG.endpoints.markets.list,
-        { page, pageSize: PAGE_SIZE }
-      );
-
-      const items = response.data.items || [];
-      total = response.data.total ?? 0;
-      markets.push(...items);
-
-      if (items.length === 0) break;
-      if (total > 0 && markets.length >= total) break;
-
-      page += 1;
-      if (page > 1000) break; // safety guard
-    }
-
+  static computeAnalytics(markets: Market[], total: number): MarketsAnalytics {
     const activeMarkets = markets.filter(m => m.isActive);
     const categories = new Set(markets.map(m => m.category)).size;
     const totalSelections = markets.reduce((sum, m) => sum + (m.selections?.length || 0), 0);
-    
+
     return {
-      totalMarkets: markets.length,
+      totalMarkets: total,
       activeMarkets: activeMarkets.length,
       categories,
       totalSelections,
-      totalChange: 0, // Would need historical data
+      totalChange: 0,
       activeChange: 0,
       categoriesChange: 0,
       selectionsChange: 0,

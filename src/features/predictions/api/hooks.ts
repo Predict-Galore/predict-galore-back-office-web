@@ -127,7 +127,8 @@ export function useUpcomingFixtures(filters?: { leagueId?: number; fromDate?: st
 // Get markets hook
 export function useMarkets(filters?: { fixtureId?: number }) {
   return useQuery({
-    queryKey: ['markets', filters],
+    // Avoid collisions with Admin Markets queries (also keyed as ['markets', ...])
+    queryKey: ['prediction-markets', filters],
     queryFn: async () => {
       return await PredictionsService.getMarkets(filters);
     },
@@ -136,15 +137,15 @@ export function useMarkets(filters?: { fixtureId?: number }) {
 
 // Get market selections hook
 export function useMarketSelections(
-  filters?: { marketId?: number },
+  filters?: { marketId?: number; fixtureId?: number },
   options?: { enabled?: boolean }
 ) {
   return useQuery({
-    queryKey: ['selections', filters],
+    // Avoid collisions with Admin Markets selection queries
+    queryKey: ['prediction-market-selections', filters],
     queryFn: async () => {
       return await PredictionsService.getMarketSelections(filters);
     },
     enabled: options?.enabled !== false && !!filters?.marketId,
   });
 }
-

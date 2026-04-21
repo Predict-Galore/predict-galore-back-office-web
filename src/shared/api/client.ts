@@ -73,7 +73,15 @@ class ApiClient {
         error: error.message || error || 'Request failed',
         errorDetails: error,
       });
-      // Throw error with more details
+
+      // Token expired or invalid — clear auth state and redirect to login
+      if (response.status === 401) {
+        useAuth.getState().logout();
+        if (typeof window !== 'undefined') {
+          window.location.replace('/login');
+        }
+      }
+
       const errorMessage = error.message || error.errors || JSON.stringify(error) || 'Request failed';
       const apiError = new Error(errorMessage) as Error & { status?: number; data?: unknown };
       apiError.status = response.status;

@@ -28,6 +28,8 @@ import type {
   Selection,
 } from './types';
 
+const GOALSCORER_MARKET_IDS = [6, 7];
+
 export class PredictionsService {
   /**
    * Get predictions list
@@ -152,20 +154,72 @@ export class PredictionsService {
    * Get markets
    */
   static async getMarkets(filters?: { fixtureId?: number }): Promise<Market[]> {
-    const response = await api.get<MarketsResponse>(API_CONFIG.endpoints.markets.list, filters);
-    return response.data;
+    const response = await api.get<unknown>(API_CONFIG.endpoints.markets.list, filters);
+
+    // Common formats seen across endpoints:
+    // - { success: true, data: Market[] }
+    // - { success: true, data: { items: Market[] } }
+    const maybeWrapped = response as Partial<MarketsResponse> & {
+      data?: unknown;
+    };
+
+    if (Array.isArray(maybeWrapped?.data)) {
+      return maybeWrapped.data as Market[];
+    }
+
+    const maybeItems = (maybeWrapped?.data as { items?: unknown } | undefined)?.items;
+    if (Array.isArray(maybeItems)) {
+      return maybeItems as Market[];
+    }
+
+    // Fallback: some APIs may return the array directly
+    if (Array.isArray(response)) {
+      return response as Market[];
+    }
+
+    return [];
   }
 
   /**
-   * Get market selections
+   * Get market selections.
+   * For goalscorer markets (ids 6 & 7), fixtureId must be provided
+   * so the API can return players from both teams.
    */
   static async getMarketSelections(filters?: {
     marketId?: number;
+    fixtureId?: number;
   }): Promise<Selection[]> {
     if (!filters?.marketId) {
       throw new Error('marketId is required for getting market selections');
     }
-    const response = await api.get<SelectionsResponse>(API_CONFIG.endpoints.selections.list(filters.marketId));
-    return response.data;
+
+    const params =
+      GOALSCORER_MARKET_IDS.includes(filters.marketId) && filters.fixtureId
+        ? { fixtureId: filters.fixtureId }
+        : undefined;
+
+    const response = await api.get<unknown>(
+      API_CONFIG.endpoints.selections.list(filters.marketId),
+      params
+    );
+
+    const maybeWrapped = response as Partial<SelectionsResponse> & {
+      data?: unknown;
+    };
+
+    if (Array.isArray(maybeWrapped?.data)) {
+      return maybeWrapped.data as Selection[];
+    }
+
+    const maybeItems = (maybeWrapped?.data as { items?: unknown } | undefined)?.items;
+    if (Array.isArray(maybeItems)) {
+      return maybeItems as Selection[];
+    }
+
+    if (Array.isArray(response)) {
+      return response as Selection[];
+    }
+
+    return [];
   }
 }

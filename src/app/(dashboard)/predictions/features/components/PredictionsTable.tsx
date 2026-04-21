@@ -265,9 +265,6 @@ export const PredictionsTable = memo(function PredictionsTable({
 
   return (
     <Box>
-      {/* Selected Prediction Profile */}
-      {selectedPrediction && <SelectedPredictionProfile prediction={selectedPrediction} />}
-
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={2}
@@ -399,6 +396,9 @@ export const PredictionsTable = memo(function PredictionsTable({
           onPageChange={(page) => onFilterChange({ page })}
         />
       )}
+
+      {/* Selected Prediction Profile */}
+      {selectedPrediction && <SelectedPredictionProfile prediction={selectedPrediction} />}
 
       {/* Actions Menu */}
       <Menu
